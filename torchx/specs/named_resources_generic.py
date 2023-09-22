@@ -39,6 +39,8 @@ from typing import Callable, Mapping
 
 from torchx.specs.api import Resource
 
+import torchx.named_resources
+
 GiB: int = 1024
 
 NAMED_RESOURCES: Mapping[str, Callable[[], Resource]] = {

@@ -1,3 +1,11 @@
+# to install fork
+pip install torchx-applovin
+
+# to update
+rm dist/* &&  && python3.9 setup.py sdist bdist_wheel && twine upload dist/* --verbose 
+
+
+
 [![PyPI](https://img.shields.io/pypi/v/torchx)](https://pypi.org/project/torchx/)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
 ![Tests](https://github.com/pytorch/torchx/actions/workflows/python-unittests.yaml/badge.svg)

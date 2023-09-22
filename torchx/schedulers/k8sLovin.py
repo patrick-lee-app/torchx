@@ -82,6 +82,7 @@ if TYPE_CHECKING:
     from kubernetes.client.models import (  # noqa: F401 imported but unused
         V1Container,
         V1Pod,
+        V1Toleration,
     )
     from kubernetes.client.rest import ApiException
 
@@ -165,9 +166,6 @@ LABEL_UNIQUE_NAME = "app.kubernetes.io/instance"
 
 ANNOTATION_ISTIO_SIDECAR = "sidecar.istio.io/inject"
 
-LABEL_INSTANCE_TYPE = "node.kubernetes.io/instance-type"
-
-
 def sanitize_for_serialization(obj: object) -> object:
     from kubernetes import client
 
@@ -220,13 +218,8 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
         requests=requests,
     )
 
-    node_selector: Dict[str, str] = {}
-
-    for key, value in resource.capabilities["node_selector"].items():
-        node_selector[key] = string(value)
-
-    # if LABEL_INSTANCE_TYPE in resource.capabilities:
-    #     node_selector[LABEL_INSTANCE_TYPE] = resource.capabilities[LABEL_INSTANCE_TYPE]
+    node_selector = resource.capabilities["node_selector"]
+    tolerations = resource.capabilities["tolerations"]
 
     # To support PyTorch dataloaders we need to set /dev/shm to larger than the
     # 64M default so we mount an unlimited sized tmpfs directory on it.
@@ -330,6 +323,7 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
             service_account_name=service_account,
             volumes=volumes,
             node_selector=node_selector,
+            tolerations=tolerations,
         ),
         metadata=V1ObjectMeta(
             annotations={
@@ -450,7 +444,7 @@ class KubernetesOpts(TypedDict, total=False):
     priority_class: Optional[str]
 
 
-class KubernetesScheduler(DockerWorkspaceMixin, Scheduler[KubernetesOpts]):
+class K8sLovin(DockerWorkspaceMixin, Scheduler[KubernetesOpts]):
     """
     KubernetesScheduler is a TorchX scheduling interface to Kubernetes.
 
@@ -781,8 +775,8 @@ class KubernetesScheduler(DockerWorkspaceMixin, Scheduler[KubernetesOpts]):
         ]
 
 
-def create_scheduler(session_name: str, **kwargs: Any) -> KubernetesScheduler:
-    return KubernetesScheduler(
+def create_scheduler(session_name: str, **kwargs: Any) -> K8sLovin:
+    return K8sLovin(
         session_name=session_name,
     )
 

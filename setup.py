@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if sys.version_info < (3, 8):
         sys.exit("python >= 3.8 required for torchx-sdk")
 
-    name = "torchx"
+    name = "torchx-applovin"
     NAME_ARG = "--override-name"
     if NAME_ARG in sys.argv:
         idx = sys.argv.index(NAME_ARG)
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         long_description_content_type="text/markdown",
         url="https://github.com/pytorch/torchx",
         license="BSD-3",
-        keywords=["pytorch", "machine learning"],
+        keywords=["pytorch", "machine learning", "applovin"],
         python_requires=">=3.7",
         install_requires=reqs.strip().split("\n"),
         include_package_data=True,
@@ -75,6 +75,15 @@ if __name__ == "__main__":
             ],
             "torchx.tracker": [
                 "fsspec=torchx.tracker.backend.fsspec:create",
+            ],
+            "torchx.named_resources": [
+                "testGPU=torchx.named_resources.ResourceLovin:test_gpu_node_selector",
+            ],
+            "torchx.schedulers": [
+                "k8sLovin=torchx.schedulers.k8sLovin:create_scheduler",
+                "kubernetes=torchx.schedulers.kubernetes_scheduler:create_scheduler",
+                "docker=torchx.schedulers.docker_scheduler:create_scheduler",
+                "local_cwd=torchx.schedulers.local_scheduler:create_scheduler",
             ],
             "fsspec.specs": [
                 "torchx_minio=torchx.test.minio.MinioFS",
