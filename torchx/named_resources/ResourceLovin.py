@@ -18,4 +18,4 @@ def test_gpu_node_selector() -> Resource:
         ]
     }
 
-    return Resource(cpu=2,  gpu=0, memMB=610, capabilities=capabilities)
+    return Resource(cpu=2,  gpu=4, memMB=1000, capabilities=capabilities)

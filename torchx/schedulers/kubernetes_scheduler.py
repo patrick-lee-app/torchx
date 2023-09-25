@@ -210,7 +210,8 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
         request_memMB = max(int(resource.memMB) - RESERVED_MEMMB, 0)
         requests["memory"] = f"{request_memMB}M"
     if resource.gpu > 0:
-        requests["nvidia.com/gpu"] = limits["nvidia.com/gpu"] = str(resource.gpu)
+        requests["volcano.sh/gpu-number"] = limits["volcano.sh/gpu-number"] = str(resource.gpu)
+        # requests["nvidia.com/gpu"] = limits["nvidia.com/gpu"] = str(resource.gpu)
 
     for device_name, device_limit in resource.devices.items():
         limits[device_name] = str(device_limit)
