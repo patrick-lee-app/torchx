@@ -76,15 +76,14 @@ from torchx.workspace.docker_workspace import DockerWorkspaceMixin
 from typing_extensions import TypedDict
 
 
-if TYPE_CHECKING:
-    from docker import DockerClient
-    from kubernetes.client import ApiClient, CustomObjectsApi
-    from kubernetes.client.models import (  # noqa: F401 imported but unused
-        V1Container,
-        V1Pod,
-        V1Toleration,
-    )
-    from kubernetes.client.rest import ApiException
+from docker import DockerClient
+from kubernetes.client import ApiClient, CustomObjectsApi
+from kubernetes.client.models import (  # noqa: F401 imported but unused
+    V1Container,
+    V1Pod,
+    V1Toleration,
+)
+from kubernetes.client.rest import ApiException
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -210,7 +209,30 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
 
     if resource.gpu > 0:
         # requests["volcano.sh/gpu-number"] = limits["volcano.sh/gpu-number"] = str(resource.gpu)
-        requests["nvidia.com/gpu"] = limits["nvidia.com/gpu"] = str(resource.gpu)
+        limits["nvidia.com/gpu"] = str(resource.gpu)
+
+        node_selector = resource.capabilities["node_selector"]
+
+        # if check if ["cascading_node_selector"]:
+
+        # else:
+
+        tolerations = [
+            V1Toleration(
+                effect="NoSchedule",
+                key="nvidia.com/gpu",
+                operator="Equal",
+                value="present"
+            ),
+            V1Toleration(
+                effect="NoSchedule",
+                key=resource.capabilities["node_selector"],
+                operator="Equal",
+                value="true"
+            ),
+        ]
+
+        # requests["nvidia.com/gpu"] = limits["nvidia.com/gpu"] = str(resource.gpu)
 
     for device_name, device_limit in resource.devices.items():
         limits[device_name] = str(device_limit)
@@ -219,9 +241,6 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
         limits=limits,
         requests=requests,
     )
-
-    node_selector = resource.capabilities["node_selector"]
-    tolerations = resource.capabilities["tolerations"]
 
     # To support PyTorch dataloaders we need to set /dev/shm to larger than the
     # 64M default so we mount an unlimited sized tmpfs directory on it.
@@ -234,9 +253,11 @@ def role_to_pod(name: str, role: Role, service_account: Optional[str]) -> "V1Pod
             ),
         ),
     ]
+
     volume_mounts = [
         V1VolumeMount(name=SHM_VOL, mount_path="/dev/shm"),
     ]
+
     security_context = V1SecurityContext()
 
     for i, mount in enumerate(role.mounts):
